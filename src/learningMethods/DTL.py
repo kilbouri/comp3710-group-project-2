@@ -1,10 +1,12 @@
 from cmath import inf
 from collections import Counter
+import os
 from util import entropy, filterByAttribute, getValueSet, mode, getValues, removeItem, setToDeterministicTuple
 from structures.DecisionTree import DecisionTree
+from concurrent.futures import ThreadPoolExecutor
 
 
-def DTL(data: tuple[dict], attrs: set, className='classification'):
+def DTL(data, attrs: set, className='classification'):
     if len(data) == 0:
         raise ValueError("Example list cannot be empty!")
     if len(attrs) == 0:
@@ -14,7 +16,7 @@ def DTL(data: tuple[dict], attrs: set, className='classification'):
     return _DTL_Helper(data, attributes, className, 'p')
 
 
-def _DTL_Helper(data: tuple[dict], attrs: tuple, className, default):
+def _DTL_Helper(data, attrs, className, default):
     # are we out of examples?
     if len(data) == 0:
         return DecisionTree(default)
@@ -33,16 +35,28 @@ def _DTL_Helper(data: tuple[dict], attrs: tuple, className, default):
     newAttributes = removeItem(best, attrs)
     default = mode(getValues(className, data))
 
-    for valueOfBest in getValues(best, data):
+    def threadTask(valueOfBest):
         newExamples = filterByAttribute(best, valueOfBest, data)
-
         subtree = _DTL_Helper(newExamples, newAttributes, className, default)
-        tree.addBranch(valueOfBest, subtree)
+        return valueOfBest, subtree
+
+    # split the work across some threads when there are more than 4 possible values
+    if len(getValueSet(best, data)) > 2:
+        with ThreadPoolExecutor(max_workers=os.cpu_count()) as executor:
+            futures = [executor.submit(threadTask, valueOfBest) for valueOfBest in getValues(best, data)]
+
+        results = [future.result() for future in futures]
+        for branchName, subtree in results:
+            tree.addBranch(branchName, subtree)
+    else:
+        for valueOfBest in getValues(best, data):
+            _, subtree = threadTask(valueOfBest)
+            tree.addBranch(valueOfBest, subtree)
 
     return tree
 
 
-def _selectAttribute(data: tuple[dict], attrs: tuple, className):
+def _selectAttribute(data, attrs, className):
     edibles = filterByAttribute(className, 'e', data)
     pEdible = len(edibles) / len(data)
 
@@ -64,7 +78,7 @@ def _selectAttribute(data: tuple[dict], attrs: tuple, className):
     return bestAttribute
 
 
-def _entropyOfSelectingAttr(attr, data: tuple[dict], className):
+def _entropyOfSelectingAttr(attr, data, className):
     totalEntropy = 0
     branches = Counter(getValues(attr, data))
 
