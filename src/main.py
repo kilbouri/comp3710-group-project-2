@@ -1,4 +1,7 @@
-from learningMethods.DTL import DTL
+from learningMethods.DTL import DTLLearner
+from testingMethods.holdOut import testHoldout
+from testingMethods.kFoldCross import kFoldCross
+from util import randomize
 
 
 def loadData(dataPath, attributePath):
@@ -25,8 +28,11 @@ def main():
     dataPath = '../data/mushrooms.short.dat' if TEST else '../data/mushrooms.dat'
     attrSet, examples = loadData(dataPath, '../data/attributes.dat')
 
-    tree = DTL(examples, attrSet)
-    tree.prettyTree()
+    dtlLearner = DTLLearner(attrSet)
+    accuracy, _ = testHoldout(dtlLearner, examples, splitPortion=0.15)
+    print(f"DTL Learner achieved {100 * accuracy:.2f}% accuracy in Hold-Out testing")
+    accuracy = kFoldCross(dtlLearner, examples)
+    print(f"DTL Learner achieved {100 * accuracy:.2f}% accuracy in 8-fold cross-validation testing")
 
 
 if __name__ == '__main__':

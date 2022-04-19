@@ -1,94 +1,95 @@
 from cmath import inf
 from collections import Counter
-import os
-from util import entropy, filterByAttribute, getValueSet, mode, getValues, removeItem, setToDeterministicTuple
+from util import entropy, filterByAttribute, getValueSet, getValues, mode
 from structures.DecisionTree import DecisionTree
 from concurrent.futures import ThreadPoolExecutor
 
 
-def DTL(data, attrs: set, className='classification'):
-    if len(data) == 0:
-        raise ValueError("Example list cannot be empty!")
-    if len(attrs) == 0:
-        raise ValueError("Attribute set cannot be empty!")
+class DTLLearner():
+    """
+    A Decision Tree Learning Agent. Uses entropy-based attribute selection to maximize
+    information gain at each branch.
 
-    attributes = setToDeterministicTuple(attrs - {className})
-    return _DTL_Helper(data, attributes, className, 'p')
+    Available hyperparameters:
+        - max depth: how many levels deep the tree can be. Lower values
+                     are faster to train but less accurate. (default +inf)
+    """
 
+    def __init__(self, attributes, maxDepth=inf, className='classification') -> None:
+        if len(attributes) == 0:
+            raise ValueError("Attribute list cannot be empty!")
 
-def _DTL_Helper(data, attrs, className, default):
-    # are we out of examples?
-    if len(data) == 0:
-        return DecisionTree(default)
+        self.maxDepth = maxDepth
+        self.className = className
+        self.attributes = attributes - {self.className}
 
-    # do all classifications match?
-    if len(getValueSet(className, data)) == 1:
-        return DecisionTree(data[0][className])
+    def learn(self, data):
+        if len(data) == 0:
+            raise ValueError("Example list cannot be empty!")
 
-    # are we out of attributes to classify?
-    if len(attrs) == 0:
-        return DecisionTree(mode(getValues(className, data)))
+        return self._DTL_Helper(data, self.attributes, 0, 'e')
 
-    best = _selectAttribute(data, attrs, className)
-    tree = DecisionTree(best)
+    def _DTL_Helper(self, data, attrs, depth, default):
+        # are we out of attributes to classify, or at the depth limit?
+        if len(attrs) == 0 or depth > self.maxDepth:
+            return DecisionTree(mode(getValues(self.className, data)))
 
-    newAttributes = removeItem(best, attrs)
-    default = mode(getValues(className, data))
+        # are we out of examples?
+        if len(data) == 0:
+            return DecisionTree(default)
 
-    def threadTask(valueOfBest):
-        newExamples = filterByAttribute(best, valueOfBest, data)
-        subtree = _DTL_Helper(newExamples, newAttributes, className, default)
-        return valueOfBest, subtree
+        # do all classifications match?
+        if len(getValueSet(self.className, data)) == 1:
+            return DecisionTree(data[0][self.className])
 
-    # split the work across some threads when there are more than 4 possible values
-    if len(getValueSet(best, data)) > 2:
-        with ThreadPoolExecutor(max_workers=os.cpu_count()) as executor:
-            futures = [executor.submit(threadTask, valueOfBest) for valueOfBest in getValues(best, data)]
+        # select best attribute and create subtree root
+        best = self._selectAttribute(data, attrs)
+        tree = DecisionTree(best, defaultValue=default)
 
-        results = [future.result() for future in futures]
-        for branchName, subtree in results:
-            tree.addBranch(branchName, subtree)
-    else:
-        for valueOfBest in getValues(best, data):
-            _, subtree = threadTask(valueOfBest)
+        # filter out attribute and determine new default
+        newAttributes = attrs - {best}
+        default = mode(getValues(self.className, data))
+
+        # show a progress bar for the first split
+        for valueOfBest in getValueSet(best, data):
+            newExamples = filterByAttribute(best, valueOfBest, data)
+            subtree = self._DTL_Helper(newExamples, newAttributes, depth + 1, default)
             tree.addBranch(valueOfBest, subtree)
 
-    return tree
+        return tree
 
+    def _selectAttribute(self, data, attrs):
+        edibles = filterByAttribute(self.className, 'e', data)
+        pEdible = len(edibles) / len(data)
 
-def _selectAttribute(data, attrs, className):
-    edibles = filterByAttribute(className, 'e', data)
-    pEdible = len(edibles) / len(data)
+        # calculate initial entropy
+        eInitial = entropy(pEdible, 1 - pEdible)
 
-    # calculate initial entropy
-    eInitial = entropy(pEdible, 1 - pEdible)
+        # find best splitting attribute based on information gain (IG)
+        bestAttribute = None
+        bestInfGain = -inf
 
-    # find best splitting attribute based on information gain (IG)
-    bestAttribute = None
-    bestInfGain = -inf
+        for attribute in attrs:
+            eAttribute = self._entropyOfSelectingAttr(attribute, data)
+            gain = eInitial - eAttribute
 
-    for attribute in attrs:
-        eAttribute = _entropyOfSelectingAttr(attribute, data, className)
-        gain = eInitial - eAttribute
+            if gain > bestInfGain:
+                bestInfGain = gain
+                bestAttribute = attribute
 
-        if gain > bestInfGain:
-            bestInfGain = gain
-            bestAttribute = attribute
+        return bestAttribute
 
-    return bestAttribute
+    def _entropyOfSelectingAttr(self, attr, data):
+        totalEntropy = 0
+        branches = Counter(getValues(attr, data))
 
+        for branchName, count in branches.most_common():
+            attrMatches = filterByAttribute(attr, branchName, data)
+            edibleUnderAttr = filterByAttribute(self.className, 'e', attrMatches)
+            pEdible = len(edibleUnderAttr) / len(attrMatches)
 
-def _entropyOfSelectingAttr(attr, data, className):
-    totalEntropy = 0
-    branches = Counter(getValues(attr, data))
+            attrEntropy = entropy(pEdible, 1 - pEdible)
+            branchProbability = count / len(data)
+            totalEntropy += branchProbability * attrEntropy
 
-    for branchName, count in branches.most_common():
-        attrMatches = filterByAttribute(attr, branchName, data)
-        edibleUnderAttr = filterByAttribute(className, 'e', attrMatches)
-        pEdible = len(edibleUnderAttr) / len(attrMatches)
-
-        attrEntropy = entropy(pEdible, 1 - pEdible)
-        branchProbability = count / len(data)
-        totalEntropy += branchProbability * attrEntropy
-
-    return totalEntropy
+        return totalEntropy

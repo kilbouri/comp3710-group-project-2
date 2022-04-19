@@ -1,5 +1,18 @@
 from math import inf, log2
 from typing import Counter, SupportsFloat
+from random import uniform
+
+
+def randomize(items):
+    unvisited = list(items)
+    while len(unvisited) != 0:
+        index = int(uniform(0, len(unvisited)))
+        item = unvisited.pop(index)
+        yield item
+
+
+def clamp(value, _min, _max):
+    return max(_min, min(_max, value))
 
 
 def mode(*items):
@@ -18,7 +31,7 @@ def getValues(attribute, data):
 
 
 def getValueSet(attribute, data):
-    return sorted(tuple(set(getValues(attribute, data))))
+    return set(getValues(attribute, data))
 
 
 def filterByAttribute(attr, attrValue, data):
