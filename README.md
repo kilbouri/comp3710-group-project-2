@@ -14,3 +14,7 @@ You will form groups of 3 or 4.
 - Relevant Literature Review
 - Presentation of the results and discussion
 - Conclusion/future work
+
+### TensorFlow
+
+We used `tensorflow-cpu`, since it works universally on all systems, and for some reason it runs much much faster than `tensorflow-gpu` for our testing.
