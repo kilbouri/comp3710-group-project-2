@@ -2,18 +2,18 @@
 
 We are using the [UC Irvine Mushrooms](https://archive.ics.uci.edu/ml/datasets/mushroom) dataset.
 
-# Methods
+## Methods
 
-## Inductive Learning
+### Inductive Learning
 
 Given target function `f`, the training inputs are tuples `(x, f(x))`. The goal is to learn a function `h` that approximates `f` as much as possible, using the training data.
 
-### Drawbacks
+#### Drawbacks
 
 - ignores prior knowledge
 - requires examples to train on
 
-## Learning Decision Trees
+### Learning Decision Trees
 
 The goal is to find a small tree consistent with example inputs. We can do this by recursively choosing the most significant attribute as the root of each subtree.
 
