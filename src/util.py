@@ -37,21 +37,6 @@ def getValueSet(attribute, data):
 def filterByAttribute(attr, attrValue, data):
     return tuple(filter(lambda x: x[attr] == attrValue, data))
 
-########################################################################
-# UTILITIES FOR KEEPING DETERMINISM
-########################################################################
-
-
-def removeDuplicates(s):
-    return setToDeterministicTuple(set(s))
-
-
-def setToDeterministicTuple(s):
-    return sorted(tuple(s))
-
-
-def removeItem(toRemove, tpl):
-    return tuple(filter(lambda x: x != toRemove, tpl))
 
 ########################################################################
 # UTILITIES FOR TF DATA FORMATS
