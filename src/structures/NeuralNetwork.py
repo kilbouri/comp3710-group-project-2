@@ -31,26 +31,25 @@ class NeuralNetwork:
         # builder safety: don't allow any changes after create() is called
         self.built = False
 
-        # add the input layer
-        #self.classifier.add(tf.keras.Input(
-        #    name="Input",
-        #    shape=[len(self.attributes)] 
-        #))
-    
-
-    def addLayer(self, units, activation=tf.nn.relu, name=None, input_shape=None):
+    def addLayer(self, units, activation=tf.nn.relu, name=None, kernel_init=None, bias_init=None, input_shape=None):
         if self.built:
             raise RuntimeError("Cannot add layers after building the network!")
+        #hidden layer
         if input_shape is None:
             self.classifier.add(tf.keras.layers.Dense(
                 name=name,
                 units=units, 
+                kernel_initializer=kernel_init,
+                bias_initializer=bias_init,
                 activation=activation
             ))
+        #input layer
         else:
             self.classifier.add(tf.keras.layers.Dense(
                 name=name,
                 units=units, 
+                kernel_initializer=kernel_init,
+                bias_initializer=bias_init,
                 activation=activation,
                 input_shape=input_shape
             ))
@@ -101,16 +100,4 @@ class NeuralNetwork:
         data_df = pd.DataFrame(data, index=[0])
         data_df = data_str_to_int(data_df)
         prediction = self.classifier.predict(data_df, batch_size=1, verbose=0)
-
-        #print(prediction)
-        #TODO: there is a 1 liner for this
-        if(prediction[0][0] > 0.5):
-            return "e"
-        else:
-            return "p"
-
-
-                        
-
-
-        
+        return 'e' if prediction[0][0] > 0.5 else 'p'

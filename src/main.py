@@ -26,7 +26,7 @@ def loadData(dataPath, attributePath):
 
 
 def main():
-
+    
     TEST = True
     dataPath = '../data/mushrooms.short.dat' if TEST else '../data/mushrooms.dat'
     attrSet, examples = loadData(dataPath, '../data/attributes.dat')
@@ -40,7 +40,6 @@ def main():
     
     print("\n=== NN ===")
     nnLearner = NNLearner(attrSet)
-    # split data into training and testing sets
     accuracy = testHoldout(nnLearner, examples, splitPortion=0.2)
     print(f"NN Learner achieved {100 * accuracy:.2f}% accuracy in Hold-Out testing")
     accuracy = kFoldCross(nnLearner, examples)

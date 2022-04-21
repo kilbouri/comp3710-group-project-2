@@ -3,7 +3,7 @@ from structures.NeuralNetwork import NeuralNetwork
 
 class NNLearner():
 
-    def __init__(self, attributes, trainingEpoches=10, trainingBatch=10, validationSplit=0.1, className='classification') -> None:
+    def __init__(self, attributes, trainingEpoches=5, trainingBatch=10, validationSplit=0.1, className='classification') -> None:
         self.className = className
         self.attributes = attributes - {self.className}
         self.classifier = None
@@ -27,8 +27,7 @@ class NNLearner():
             className=self.className
         )\
             .addLayer(32, name='Input', activation='relu', input_shape=[len(self.attributes)])\
-            .addLayer(16, activation='relu')\
-            .addLayer(4, activation='relu')\
+            .addLayer(8, activation='relu')\
             .addLayer(1, name='Output', activation='sigmoid')\
             .create(optimizer='adam', loss='binary_crossentropy')
 
@@ -40,8 +39,10 @@ class NNLearner():
     def tuneHyperparameters(self, data):
         batch_sizes = [5, 10, 20, 50, 75, 100]
         epochs = [5, 10, 20, 50, 75, 100]
-        optimizers = ['adam', 'sgd']
-        losses = ['binary_crossentropy']
+        optimizers = ['RMSprop', 'adam', 'sgd']
+        losses = ['MeanSquaredError', 'binary_crossentropy']
+        kernel_initializers = [None, 'random_uniform']
+        bias_initializers = [None, 'zeros']
 
         best = {"accuracy": 0, "loss": None,
             "optimizer": None, "batch_size": None, "epochs": None}
@@ -49,26 +50,35 @@ class NNLearner():
             for epoch in epochs:
                 for optimizer in optimizers:
                     for loss in losses:
-                        classifier = NeuralNetwork(
-                            attributes=self.attributes,
-                            trainingEpoches=epoch,
-                            validationSplit=self.valSplit,
-                            trainingBatch=batch_size,
-                            className=self.className
-                        )\
-                            .addLayer(32, name='Input', activation='relu', input_shape=[len(self.attributes)])\
-                            .addLayer(16, activation='relu')\
-                            .addLayer(4, activation='relu')\
-                            .addLayer(1, name='Output', activation='sigmoid')\
-                            .create(optimizer=optimizer, loss=loss, metrics=['accuracy'])
-                        print("Batch size: " + str(batch_size) + " Epochs: " + str(epoch) + " Optimizer: " + str(optimizer) + " Loss: " + str(loss), end="")
-                        history = classifier.learn(data)
-                        avg_accuracy = history.history['accuracy'][-1]
-                        print(f" = Accuracy: {100 * avg_accuracy:.2f}")
-                        if(avg_accuracy > best["accuracy"]):
-                            best["accuracy"] = avg_accuracy
-                            best["loss"] = loss
-                            best["optimizer"] = optimizer
-                            best["batch_size"] = batch_size
-                            best["epochs"] = epoch
+                        for kernel in kernel_initializers:
+                            for bias in bias_initializers:
+                                classifier = NeuralNetwork(
+                                    attributes=self.attributes,
+                                    trainingEpoches=epoch,
+                                    validationSplit=self.valSplit,
+                                    trainingBatch=batch_size,
+                                    className=self.className
+                                )\
+                                    .addLayer(32, name='Input', activation='relu', input_shape=[len(self.attributes)], kernel_init=kernel, bias_init=bias)\
+                                    .addLayer(16, activation='relu', kernel_init=kernel, bias_init=bias)\
+                                    .addLayer(4, activation='relu', kernel_init=kernel, bias_init=bias)\
+                                    .addLayer(1, name='Output', activation='sigmoid', kernel_init=kernel, bias_init=bias)\
+                                    .create(optimizer=optimizer, loss=loss, metrics=['accuracy'])
+                                history = classifier.learn(data)
+                                avg_accuracy = history.history['accuracy'][-1]
+
+                                print("Batch size:" + str(batch_size), end="")
+                                print("  Epochs:" + str(epoch), end="")
+                                print("  Optimizer:" + str(optimizer), end="")
+                                print("  Loss:" + str(loss), end="")
+                                print("  Kernel:" + str(kernel), end="")
+                                print("  Bias:" + str(bias), end="")
+                                print(f" = Accuracy:{100 * avg_accuracy:.2f}")
+                                
+                                if(avg_accuracy > best["accuracy"]):
+                                    best["accuracy"] = avg_accuracy
+                                    best["loss"] = loss
+                                    best["optimizer"] = optimizer
+                                    best["batch_size"] = batch_size
+                                    best["epochs"] = epoch
         return best
