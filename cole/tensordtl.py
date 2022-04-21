@@ -58,8 +58,8 @@ model = keras.Sequential(
 )
 model.compile(
     optimizer=keras.optimizers.Adam(learning_rate=1e-3),
-    # loss=keras.losses.hinge,
-    loss=keras.losses.binary_crossentropy,
+    loss=keras.losses.hinge,
+    # loss=keras.losses.binary_crossentropy,
     # metrics=[keras.metrics.CategoricalAccuracy(name="acc")],
     metrics=[keras.metrics.binary_accuracy],
 )
