@@ -1,0 +1,6 @@
+progress
+# tensorflow-gpu
+tensorflow-cpu
+numpy
+pandas
+sklearn
