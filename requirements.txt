@@ -3,3 +3,4 @@ progress
 tensorflow-cpu
 numpy
 pandas
+sklearn
