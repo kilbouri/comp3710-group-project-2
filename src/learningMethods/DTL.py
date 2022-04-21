@@ -22,12 +22,19 @@ class DTLLearner():
         self.maxDepth = maxDepth
         self.className = className
         self.attributes = attributes - {self.className}
+        self.classifier = None
 
     def learn(self, data):
         if len(data) == 0:
             raise ValueError("Example list cannot be empty!")
 
-        return self._DTL_Helper(data, self.attributes, 0, 'e')
+        self.classifier = self._DTL_Helper(data, self.attributes, 0, 'e')
+
+    def evaluate(self, data):
+        if self.classifier == None:
+            raise RuntimeError("DTL cannot be evaluated before learning!")
+
+        return self.classifier.decide(data)
 
     def _DTL_Helper(self, data, attrs, depth, default):
         # are we out of attributes to classify, or at the depth limit?
