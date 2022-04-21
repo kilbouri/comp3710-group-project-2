@@ -1,0 +1,19 @@
+Epochs,Batch size,Optimizer,Loss,Kernel,Bias,Accuracy
+5,5,RMSprop,MeanSquaredError,None,None,52.63301730155945
+5,10,RMSprop,MeanSquaredError,None,None,47.36698269844055
+5,20,RMSprop,MeanSquaredError,None,None,52.63301730155945
+5,50,RMSprop,MeanSquaredError,None,None,52.63301730155945
+5,75,RMSprop,MeanSquaredError,None,None,52.63301730155945
+5,100,RMSprop,MeanSquaredError,None,None,52.63301730155945
+10,5,RMSprop,MeanSquaredError,None,None,52.63301730155945
+10,10,RMSprop,MeanSquaredError,None,None,52.63301730155945
+10,20,RMSprop,MeanSquaredError,None,None,47.36698269844055
+10,50,RMSprop,MeanSquaredError,None,None,85.8022153377533
+10,75,RMSprop,MeanSquaredError,None,None,47.36698269844055
+10,100,RMSprop,MeanSquaredError,None,None,47.36698269844055
+20,5,RMSprop,MeanSquaredError,None,None,47.36698269844055
+20,10,RMSprop,MeanSquaredError,None,None,92.08042621612549
+20,20,RMSprop,MeanSquaredError,None,None,52.63301730155945
+20,50,RMSprop,MeanSquaredError,None,None,52.63301730155945
+20,75,RMSprop,MeanSquaredError,None,None,52.63301730155945
+20,100,RMSprop,MeanSquaredError,None,None,81.24743700027466

@@ -42,17 +42,17 @@ def filterByAttribute(attr, attrValue, data):
 # UTILITIES FOR TF DATA FORMATS
 ########################################################################
 
-def transform_data(issacinput:list):
-    # convert issac's data format into something that can be fed to a dataframe
-    out = {col : [] for col in issacinput[0].keys()}
-    for d in issacinput:
-        for k,v in d.items():
-            out[k].append(v)
-    return out
-
-def data_str_to_int(data:dict):
-    # takes a dict from transform_data and converts all strings to ints
-    m = {i:o for o,i in enumerate('abcdefghijklmnopqrstuvwxyz?')}
-    for k,v in data.items():
-        data[k] = [m[x] for x in v]
+def data_str_to_int(data):
+    """
+    takes a df and converts all values to ints
+    'classification' becomes 1 for edible and 0 for poisonous
+    everything else is encoded as ascii using ord()
+    """
+    for k, v in data.items():
+        if k == 'index':
+            continue
+        if k == 'classification':
+            data[k] = [{'e':1, 'p':0}[x] for x in v]
+        else:
+            data[k] = list(map(ord, v))
     return data
