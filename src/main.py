@@ -1,4 +1,6 @@
+import os
 from learningMethods.DTL import DTLLearner
+from learningMethods.NNL import NNLearner
 from testingMethods.holdOut import testHoldout
 from testingMethods.kFoldCross import kFoldCross
 from util import randomize
@@ -24,16 +26,29 @@ def loadData(dataPath, attributePath):
 
 
 def main():
+
     TEST = True
     dataPath = '../data/mushrooms.short.dat' if TEST else '../data/mushrooms.dat'
     attrSet, examples = loadData(dataPath, '../data/attributes.dat')
 
+    print("=== DTL ===")
     dtlLearner = DTLLearner(attrSet)
-    accuracy, _ = testHoldout(dtlLearner, examples, splitPortion=0.15)
+    accuracy = testHoldout(dtlLearner, examples, splitPortion=0.2)
     print(f"DTL Learner achieved {100 * accuracy:.2f}% accuracy in Hold-Out testing")
-    accuracy = kFoldCross(dtlLearner, examples)
+    accuracy = kFoldCross(dtlLearner, examples, max_workers=os.cpu_count())
     print(f"DTL Learner achieved {100 * accuracy:.2f}% accuracy in 8-fold cross-validation testing")
+    
+    print("\n=== NN ===")
+    nnLearner = NNLearner(attrSet)
+    # split data into training and testing sets
+    accuracy = testHoldout(nnLearner, examples, splitPortion=0.2)
+    print(f"NN Learner achieved {100 * accuracy:.2f}% accuracy in Hold-Out testing")
+    accuracy = kFoldCross(nnLearner, examples)
+    print(f"NN Learner achieved {100 * accuracy:.2f}% accuracy in 8-fold cross-validation testing")
+
+    nnLearner.tuneHyperparameters(examples)
 
 
 if __name__ == '__main__':
     main()
+
