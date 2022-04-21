@@ -38,17 +38,11 @@ def filterByAttribute(attr, attrValue, data):
     return tuple(filter(lambda x: x[attr] == attrValue, data))
 
 ########################################################################
-# UTILITIES FOR KEEPING DETERMINISM
+# UTILITIES FOR TF DATA FORMATS
 ########################################################################
-
-
-def removeDuplicates(s):
-    return setToDeterministicTuple(set(s))
-
-
-def setToDeterministicTuple(s):
-    return sorted(tuple(s))
-
-
-def removeItem(toRemove, tpl):
-    return tuple(filter(lambda x: x != toRemove, tpl))
+    
+def data_str_to_int(data:dict):
+    m = {i:o for o,i in enumerate('abcdefghijklmnopqrstuvwxyz?')}
+    for k,v in data.items():
+        data[k] = [m[x] for x in v]
+    return data

@@ -15,10 +15,6 @@ class DecisionTree:
 
         self.branches[branchLabel] = subtree
 
-    def evaluate(self, data):
-        # wrapper for testing methods
-        return self.decide(data)
-
     def decide(self, data):
         if self.isLeaf():
             return self.label
