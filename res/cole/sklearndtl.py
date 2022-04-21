@@ -43,9 +43,9 @@ print(f"Test dataset shape: {test_data.shape}")
 # %%
 # build the model
 
-# input is number of inputs; -1 because of the classification label
-# each dense layer is a hidden layer
-clf = svm.SVC(kernel='linear')
+# one versus one decision shape
+clf = svm.SVC(kernel='linear', decision_function_shape='ovo')
+# clf = svm.LinearSVC()
 
 # %%
 # prepare the data
