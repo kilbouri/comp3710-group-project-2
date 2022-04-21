@@ -27,7 +27,8 @@ class NNLearner():
             className=self.className
         )\
             .addLayer(32, name='Input', activation='relu', input_shape=[len(self.attributes)])\
-            .addLayer(8, activation='relu')\
+            .addLayer(16, activation='relu')\
+            .addLayer(4, activation='relu')\
             .addLayer(1, name='Output', activation='sigmoid')\
             .create(optimizer='adam', loss='binary_crossentropy')
 
@@ -74,7 +75,7 @@ class NNLearner():
                                 print("  Kernel:" + str(kernel), end="")
                                 print("  Bias:" + str(bias), end="")
                                 print(f" = Accuracy:{100 * avg_accuracy:.2f}")
-                                
+
                                 if(avg_accuracy > best["accuracy"]):
                                     best["accuracy"] = avg_accuracy
                                     best["loss"] = loss
