@@ -1,5 +1,5 @@
 import os
-from attr import attr;
+#from attr import attr;
 
 if os.getlogin() == 'Mat':
     os.environ['TF_CPP_MIN_LOG_LEVEL'] = '1'
@@ -74,18 +74,8 @@ class NeuralNetwork:
         data_df = pd.DataFrame(data)
         data_df = data_str_to_int(data_df)
 
-        #input training data
-        train_inputs = data_df.drop(columns=[self.className])
-
-        #output training data (p = 0, e = 1)
-        train_outputs = data_df[self.className]
-        for i in train_outputs:
-            if i == 4:
-                i = 1
-            else:
-                i = 0
-
-        train_outputs = train_outputs.apply(lambda x: 1 if x == 4 else 0)
+        # input training data, output training data (p = 0, e = 1)
+        train_inputs, train_outputs = data_df.drop(columns=[self.className]), data_df[self.className]
 
         return self.classifier.fit(
             x=train_inputs,
@@ -97,7 +87,14 @@ class NeuralNetwork:
         )
 
     def predict(self, data):
-        data_df = pd.DataFrame(data, index=[0])
-        data_df = data_str_to_int(data_df)
-        prediction = self.classifier.predict(data_df, batch_size=1, verbose=0)
-        return 'e' if prediction[0][0] > 0.5 else 'p'
+        if isinstance(data, dict):
+            data_df = pd.DataFrame(data, index=[0])
+            data_df = data_str_to_int(data_df)
+            prediction = self.classifier.predict(data_df, batch_size=1, verbose=0)
+            return 'e' if prediction[0][0] > 0.5 else 'p'
+        else:
+            data_df = pd.DataFrame(data)
+            data_df = data_str_to_int(data_df)
+            data_df.drop(columns=['classification'], inplace=True)
+            prediction = self.classifier.predict(data_df)
+            return list(map(lambda x: 'e' if x > 0.5 else 'p', prediction))

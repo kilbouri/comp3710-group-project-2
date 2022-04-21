@@ -1,4 +1,5 @@
 from structures.NeuralNetwork import NeuralNetwork
+from itertools import product
 
 
 class NNLearner():
@@ -25,12 +26,12 @@ class NNLearner():
             validationSplit=self.valSplit,
             trainingBatch=self.trainingBatch,
             className=self.className
-        )\
-            .addLayer(32, name='Input', activation='relu', input_shape=[len(self.attributes)])\
-            .addLayer(16, activation='relu')\
-            .addLayer(4, activation='relu')\
-            .addLayer(1, name='Output', activation='sigmoid')\
-            .create(optimizer='adam', loss='binary_crossentropy')
+        )
+        self.classifier.addLayer(32, name='Input', activation='relu', input_shape=[len(self.attributes)])
+        self.classifier.addLayer(16, activation='relu')
+        self.classifier.addLayer(4, activation='relu')
+        self.classifier.addLayer(1, name='Output', activation='sigmoid')
+        self.classifier.create(optimizer='adam', loss='binary_crossentropy')
 
         return self.classifier.learn(data)
 
@@ -44,42 +45,39 @@ class NNLearner():
         losses = ['MeanSquaredError', 'binary_crossentropy']
         kernel_initializers = [None, 'random_uniform']
         bias_initializers = [None, 'zeros']
-
+        
         best = {"accuracy": 0, "loss": None,
             "optimizer": None, "batch_size": None, "epochs": None}
-        for batch_size in batch_sizes:
-            for epoch in epochs:
-                for optimizer in optimizers:
-                    for loss in losses:
-                        for kernel in kernel_initializers:
-                            for bias in bias_initializers:
-                                classifier = NeuralNetwork(
-                                    attributes=self.attributes,
-                                    trainingEpoches=epoch,
-                                    validationSplit=self.valSplit,
-                                    trainingBatch=batch_size,
-                                    className=self.className
-                                )\
-                                    .addLayer(32, name='Input', activation='relu', input_shape=[len(self.attributes)], kernel_init=kernel, bias_init=bias)\
-                                    .addLayer(16, activation='relu', kernel_init=kernel, bias_init=bias)\
-                                    .addLayer(4, activation='relu', kernel_init=kernel, bias_init=bias)\
-                                    .addLayer(1, name='Output', activation='sigmoid', kernel_init=kernel, bias_init=bias)\
-                                    .create(optimizer=optimizer, loss=loss, metrics=['accuracy'])
-                                history = classifier.learn(data)
-                                avg_accuracy = history.history['accuracy'][-1]
+        with open("NNTrain.csv", "w") as f:
+            f.write("Epochs,Batch size,Optimizer,Loss,Kernel,Bias,Accuracy\n")
+        for optimizer, loss, kernel, bias, epoch, batch_size, in product(optimizers, losses, kernel_initializers, bias_initializers, epochs, batch_sizes):
+            classifier = NeuralNetwork(
+                attributes=self.attributes,
+                trainingEpoches=epoch,
+                validationSplit=self.valSplit,
+                trainingBatch=batch_size,
+                className=self.className
+            )\
+                .addLayer(32, name='Input', activation='relu', input_shape=[len(self.attributes)], kernel_init=kernel, bias_init=bias)\
+                .addLayer(16, activation='relu', kernel_init=kernel, bias_init=bias)\
+                .addLayer(4, activation='relu', kernel_init=kernel, bias_init=bias)\
+                .addLayer(1, name='Output', activation='sigmoid', kernel_init=kernel, bias_init=bias)\
+                .create(optimizer=optimizer, loss=loss, metrics=['accuracy'])
+            history = classifier.learn(data)
+            avg_accuracy = history.history['accuracy'][-1]
 
-                                print("Batch size:" + str(batch_size), end="")
-                                print("  Epochs:" + str(epoch), end="")
-                                print("  Optimizer:" + str(optimizer), end="")
-                                print("  Loss:" + str(loss), end="")
-                                print("  Kernel:" + str(kernel), end="")
-                                print("  Bias:" + str(bias), end="")
-                                print(f" = Accuracy:{100 * avg_accuracy:.2f}")
+            with open("NNTrain.csv", "a") as f:
+                vals = [epoch, batch_size, optimizer, loss, kernel, bias, avg_accuracy*100]
+                f.write(",".join(str(x) for x in vals) + "\n")
+            print(f"Epochs: {epoch}, Batch size: {batch_size}, Optimizer: {optimizer}, Loss: {loss}, Kernel: {kernel}, Bias: {bias}, Accuracy: {avg_accuracy*100}")
 
-                                if(avg_accuracy > best["accuracy"]):
-                                    best["accuracy"] = avg_accuracy
-                                    best["loss"] = loss
-                                    best["optimizer"] = optimizer
-                                    best["batch_size"] = batch_size
-                                    best["epochs"] = epoch
+            if(avg_accuracy > best["accuracy"]):
+                best["accuracy"] = avg_accuracy
+                best["loss"] = loss
+                best["optimizer"] = optimizer
+                best["batch_size"] = batch_size
+                best["epochs"] = epoch
+        with open('best.csv', 'w') as f:
+            f.write('epochs,batch_size,optimizer,loss,kernel,bias,accuracy\n')
+            f.write(f"{best['epochs']},{best['batch_size']},{best['optimizer']},{best['loss']},{best['accuracy']}")
         return best
