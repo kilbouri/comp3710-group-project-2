@@ -33,7 +33,6 @@ def main():
     TESTDTL, SVMSK, SVMKERAS, NN, NNTUNE = True, True, True, True, True
     dataPath = '../data/mushrooms.short.dat' if TEST else '../data/mushrooms.dat'
     attrSet, examples = loadData(dataPath, '../data/attributes.dat')
-    examples = randomize(examples)
 
     if TESTDTL:
         print("\n=== DTL ===")

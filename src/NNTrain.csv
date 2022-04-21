@@ -17,3 +17,5 @@ Epochs,Batch size,Optimizer,Loss,Kernel,Bias,Accuracy
 20,50,RMSprop,MeanSquaredError,None,None,52.63301730155945
 20,75,RMSprop,MeanSquaredError,None,None,52.63301730155945
 20,100,RMSprop,MeanSquaredError,None,None,81.24743700027466
+50,5,RMSprop,MeanSquaredError,None,None,52.63301730155945
+50,10,RMSprop,MeanSquaredError,None,None,52.63301730155945
