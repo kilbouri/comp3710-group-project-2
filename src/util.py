@@ -2,7 +2,6 @@ from math import inf, log2
 from typing import Counter, SupportsFloat
 from random import uniform
 
-
 def randomize(items):
     unvisited = list(items)
     while len(unvisited) != 0:
@@ -42,17 +41,30 @@ def filterByAttribute(attr, attrValue, data):
 # UTILITIES FOR TF DATA FORMATS
 ########################################################################
 
-def transform_data(issacinput:list):
-    # convert issac's data format into something that can be fed to a dataframe
-    out = {col : [] for col in issacinput[0].keys()}
-    for d in issacinput:
-        for k,v in d.items():
-            out[k].append(v)
-    return out
+def issac_to_dfdict(data):
+    """
+    takes a df and converts all values to ints
+    'classification' becomes 1 for edible and 0 for poisonous
+    everything else is encoded as ascii using ord()
+    """
+    # if input is dict, it is a single input
+    if isinstance(data, dict):
+        dfdict = {}
+        for k, v in data.items():
+            out[k] = [v]
+    # start by converting from a list of dicts to a dict of lists
+    else:
+        dfdict = {k: [] for k in data[0].keys()}
+        for d in data:
+            for k, v in d.items():
+                dfdict[k].append(v)
 
-def data_str_to_int(data:dict):
-    # takes a dict from transform_data and converts all strings to ints
-    m = {i:o for o,i in enumerate('abcdefghijklmnopqrstuvwxyz?')}
-    for k,v in data.items():
-        data[k] = [m[x] for x in v]
-    return data
+    for k, v in dfdict.items():
+        if k == 'index':
+            continue
+        if k == 'classification':
+            dfdict[k] = [{'e':1, 'p':0}[x] for x in v]
+        else:
+            m = {i: o for o, i in enumerate('abcdefghijklmnopqrstuvwxyz?')}
+            dfdict[k] = [m[x] for x in v]
+    return dfdict
