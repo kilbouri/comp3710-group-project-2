@@ -1,0 +1,2 @@
+epochs,batch_size,optimizer,loss,kernel,bias,accuracy
+50,50,RMSprop,MeanSquaredError,1.0
