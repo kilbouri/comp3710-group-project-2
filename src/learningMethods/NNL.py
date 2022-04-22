@@ -4,7 +4,7 @@ from itertools import product
 
 class NNLearner():
 
-    def __init__(self, attributes, trainingEpoches=5, trainingBatch=10, validationSplit=0.1, className='classification') -> None:
+    def __init__(self, attributes, trainingEpoches=10, trainingBatch=20, validationSplit=0.5, className='classification') -> None:
         self.className = className
         self.attributes = attributes - {self.className}
         self.classifier = None
@@ -27,11 +27,12 @@ class NNLearner():
             trainingBatch=self.trainingBatch,
             className=self.className
         )
-        self.classifier.addLayer(32, name='Input', activation='relu', input_shape=[len(self.attributes)])
-        self.classifier.addLayer(16, activation='relu')
+        self.classifier.addLayer(16, name='Input', activation='relu', input_shape=[len(self.attributes)])
+        #self.classifier.addLayer(16, activation='relu')
+        #self.classifier.addLayer(10, activation='relu')
         self.classifier.addLayer(4, activation='relu')
         self.classifier.addLayer(1, name='Output', activation='sigmoid')
-        self.classifier.create(optimizer='adam', loss='binary_crossentropy')
+        self.classifier.create(optimizer='adam', loss='hinge', metrics=['accuracy'])
 
         return self.classifier.learn(data)
 

@@ -2,8 +2,7 @@ from sklearn import svm
 import pandas as pd
 from tensorflow import keras
 from tensorflow.keras import layers
-from util import data_str_to_int
-
+from util import issac_to_dfdict
 
 class SupportVectorMachineSK:
     def __init__(self, attributes, className='classification'):
@@ -21,26 +20,21 @@ class SupportVectorMachineSK:
         if self.built:
             raise RuntimeError("Cannot build a network multiple times!")
         self.built = True
-
-        # convert into dataframe
-        data_df = pd.DataFrame(data)
-        data_df = data_str_to_int(data_df)
+        data_df = pd.DataFrame(issac_to_dfdict(data))
+        data_df = data_df.apply(lambda s: s.astype('float32'))
+        train_inputs, train_outputs = data_df.drop(columns=[self.className]), data_df[self.className]
         # input training data, output training data (p = 0, e = 1)
-        train_inputs, train_outputs = data_df.drop(
-            columns=[self.className]), data_df[self.className]
+
         return self.classifier.fit(train_inputs, train_outputs)
 
     def predict(self, data):
+        data_df = pd.DataFrame(issac_to_dfdict(data))
+        data_df = data_df.apply(lambda s: s.astype('float32'))
+        test_inputs, test_outputs = data_df.drop(columns=[self.className]), data_df[self.className]
+        prediction = self.classifier.predict(test_inputs)
         if isinstance(data, dict):
-            data_df = pd.DataFrame(data, index=[0])
-            data_df = data_str_to_int(data_df)
-            prediction = self.classifier.predict(data_df)
-            return 'e' if prediction == 1 else 'p'
+            return 'e' if prediction[0] == 1 else 'p'
         else:
-            data_df = pd.DataFrame(data)
-            data_df = data_str_to_int(data_df)
-            data_df.drop(columns=['classification'], inplace=True)
-            prediction = self.classifier.predict(data_df)
             return list(map(lambda x: 'e' if x > 0.5 else 'p', prediction))
 
 
@@ -82,14 +76,13 @@ class SupportVectorMachineTF:
         )
         return self
 
-    def addLayer(self, units, activation='relu', name=None, kernel_init='random_uniform', bias_init='zeros'):
+    def addLayer(self, units, activation='relu', name=None, kernel_init='random_uniform'):
         if self.built:
             raise RuntimeError("Cannot add layers after building the network!")
         self.classifier.add(layers.Dense(
             name=name,
             units=units, 
             kernel_initializer=kernel_init,
-            bias_initializer=bias_init,
             activation=activation
         ))
         return self
@@ -98,14 +91,15 @@ class SupportVectorMachineTF:
         if not self.built:
             self.create()
         # convert into dataframe and split
-        data = data_str_to_int(pd.DataFrame(data))
+        data = pd.DataFrame(issac_to_dfdict(data))
+        data = data.apply(lambda s: s.astype('float32'))
         train_inputs, train_outputs = data.drop(columns=[self.className]), data[self.className]
 
         # train the model
         # convert all values to float32 for vector multiplication
 
         # train the model
-        return self.classifier.fit(
+        self.classifier.fit(
             train_inputs,
             train_outputs,
             epochs=self.epochCount,
@@ -113,16 +107,15 @@ class SupportVectorMachineTF:
             validation_split=self.valSplit,
             verbose=0
         )
+        return self
 
     def predict(self, data):
+        data_df = pd.DataFrame(issac_to_dfdict(data))
+        data_df = data_df.apply(lambda s: s.astype('float32'))
         if isinstance(data, dict):
-            data_df = pd.DataFrame(data, index=[0])
-            data_df = data_str_to_int(data_df)
             prediction = self.classifier.predict(data_df, batch_size=1)
             return 'e' if prediction[0][0] > 0.5 else 'p'
         else:
-            data_df = pd.DataFrame(data)
-            data_df = data_str_to_int(data_df)
             data_df.drop(columns=['classification'], inplace=True)
             prediction = self.classifier.predict(data_df)
             return list(map(lambda x: 'e' if x > 0.5 else 'p', prediction))

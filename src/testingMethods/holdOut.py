@@ -21,18 +21,11 @@ def testHoldout(learningMethod, data, splitPortion=0.5, className='classificatio
     trainingSet = data[:splitPoint]
     testSet = data[splitPoint:]
 
-    # request the learning method to perform some learning on the training set
     learningMethod.learn(trainingSet)
 
-    # wrapper to show progress bar for long-running training
-    iterator = testSet
-    if showProgress and not bulkTest:
-        iterator = IncrementalBar("Hold-Out Evaluation").iter(testSet)
-    
-    # evaluate the learning method based on test set
-    numCorrect = 0
+    numCorrect =0
     if not bulkTest:
-        for testItem in iterator:
+        for testItem in testSet:
             testData = dict(testItem)
             correct = testData.pop(className)
 
@@ -43,7 +36,7 @@ def testHoldout(learningMethod, data, splitPortion=0.5, className='classificatio
             if classifierResult == correct:
                 numCorrect += 1
     else:
-        results = learningMethod.evaluate(iterator)
+        results = learningMethod.evaluate(testSet)
         numCorrect = sum(result == testItem[className] for result, testItem in zip(results, testSet))
 
     return (numCorrect / len(testSet))

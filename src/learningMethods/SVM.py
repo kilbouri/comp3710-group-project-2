@@ -29,7 +29,7 @@ class SVMLearnerSK():
 
 class SVMLearnerKeras():
 
-    def __init__(self, attributes, trainingEpoches=5, trainingBatch=10, validationSplit=0.2, className='classification') -> None:
+    def __init__(self, attributes, trainingEpoches=20, trainingBatch=128, validationSplit=0.8, className='classification') -> None:
         self.className = className
         self.attributes = attributes - {self.className}
         self.classifier = None

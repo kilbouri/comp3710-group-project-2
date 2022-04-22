@@ -2,7 +2,6 @@ from math import inf, log2
 from typing import Counter, SupportsFloat
 from random import uniform
 
-
 def randomize(items):
     unvisited = list(items)
     while len(unvisited) != 0:
@@ -42,17 +41,30 @@ def filterByAttribute(attr, attrValue, data):
 # UTILITIES FOR TF DATA FORMATS
 ########################################################################
 
-def data_str_to_int(data):
+def issac_to_dfdict(data):
     """
     takes a df and converts all values to ints
     'classification' becomes 1 for edible and 0 for poisonous
     everything else is encoded as ascii using ord()
     """
-    for k, v in data.items():
+    # if input is dict, it is a single input
+    if isinstance(data, dict):
+        dfdict = {}
+        for k, v in data.items():
+            out[k] = [v]
+    # start by converting from a list of dicts to a dict of lists
+    else:
+        dfdict = {k: [] for k in data[0].keys()}
+        for d in data:
+            for k, v in d.items():
+                dfdict[k].append(v)
+
+    for k, v in dfdict.items():
         if k == 'index':
             continue
         if k == 'classification':
-            data[k] = [{'e':1, 'p':0}[x] for x in v]
+            dfdict[k] = [{'e':1, 'p':0}[x] for x in v]
         else:
-            data[k] = list(map(ord, v))
-    return data
+            m = {i: o for o, i in enumerate('abcdefghijklmnopqrstuvwxyz?')}
+            dfdict[k] = [m[x] for x in v]
+    return dfdict
