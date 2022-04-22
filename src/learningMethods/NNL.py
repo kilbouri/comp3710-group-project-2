@@ -1,4 +1,5 @@
 from structures.NeuralNetwork import NeuralNetwork
+from itertools import product
 
 
 class NNLearner():
@@ -47,6 +48,7 @@ class NNLearner():
 
         best = {"accuracy": 0, "loss": None,
             "optimizer": None, "batch_size": None, "epochs": None}
+        
         for batch_size in batch_sizes:
             for epoch in epochs:
                 for optimizer in optimizers:

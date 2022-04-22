@@ -1,5 +1,4 @@
 import os
-from attr import attr;
 
 if os.getlogin() == 'Mat':
     os.environ['TF_CPP_MIN_LOG_LEVEL'] = '1'
@@ -97,7 +96,14 @@ class NeuralNetwork:
         )
 
     def predict(self, data):
-        data_df = pd.DataFrame(data, index=[0])
-        data_df = data_str_to_int(data_df)
-        prediction = self.classifier.predict(data_df, batch_size=1, verbose=0)
-        return 'e' if prediction[0][0] > 0.5 else 'p'
+        if isinstance(data, dict):
+            data_df = pd.DataFrame(data, index=[0])
+            data_df = data_str_to_int(data_df)
+            prediction = self.classifier.predict(data_df, batch_size=1, verbose=0)
+            return 'e' if prediction[0][0] > 0.5 else 'p'
+        else:
+            data_df = pd.DataFrame(data)
+            data_df = data_str_to_int(data_df)
+            data_df.drop(columns=[self.className], inplace=True)
+            prediction = self.classifier.predict(data_df.values)
+            return list(map(lambda x: 'e' if x > 0.5 else 'p', prediction))

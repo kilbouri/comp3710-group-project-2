@@ -26,26 +26,26 @@ def loadData(dataPath, attributePath):
 
 
 def main():
-    
-    TEST = True
-    dataPath = '../data/mushrooms.short.dat' if TEST else '../data/mushrooms.dat'
+
+    TEST = False
+    dataPath = '../data/mushrooms.dat' if TEST else '../data/mushrooms.dat'
     attrSet, examples = loadData(dataPath, '../data/attributes.dat')
 
-    print("=== DTL ===")
-    dtlLearner = DTLLearner(attrSet)
-    accuracy = testHoldout(dtlLearner, examples, splitPortion=0.2)
-    print(f"DTL Learner achieved {100 * accuracy:.2f}% accuracy in Hold-Out testing")
-    accuracy = kFoldCross(dtlLearner, examples, max_workers=os.cpu_count())
-    print(f"DTL Learner achieved {100 * accuracy:.2f}% accuracy in 8-fold cross-validation testing")
+    #print("=== DTL ===")
+    #dtlLearner = DTLLearner(attrSet)
+    #accuracy = testHoldout(dtlLearner, examples, splitPortion=0.2)
+    #print(f"DTL Learner achieved {100 * accuracy:.2f}% accuracy in Hold-Out testing")
+    #accuracy = kFoldCross(dtlLearner, examples, max_workers=os.cpu_count())
+    #print(f"DTL Learner achieved {100 * accuracy:.2f}% accuracy in 8-fold cross-validation testing")
     
     print("\n=== NN ===")
     nnLearner = NNLearner(attrSet)
-    accuracy = testHoldout(nnLearner, examples, splitPortion=0.2)
+    accuracy = testHoldout(nnLearner, examples, splitPortion=0.2, bulkTest=True, showProgress=False)
     print(f"NN Learner achieved {100 * accuracy:.2f}% accuracy in Hold-Out testing")
-    accuracy = kFoldCross(nnLearner, examples)
+    accuracy = kFoldCross(nnLearner, examples, bulkTest=True)
     print(f"NN Learner achieved {100 * accuracy:.2f}% accuracy in 8-fold cross-validation testing")
 
-    nnLearner.tuneHyperparameters(examples)
+    #nnLearner.tuneHyperparameters(examples)
 
 
 if __name__ == '__main__':
